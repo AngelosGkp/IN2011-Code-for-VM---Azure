@@ -13,33 +13,33 @@ public class TCPClient {
     public static void main(String[] args) throws IOException {
 
 	// IP Addresses will be discussed in detail in lecture 4
-	String IPAddressString = "127.0.0.1";
+	String IPAddressString = "104.18.26.120";
 	InetAddress host = InetAddress.getByName(IPAddressString);
 
 	// Port numbers will be discussed in detail in lecture 5
-	int port = 4567;
+	int port = 80;
+	String request = "GET / HTTP/1.1\r\nHost: www.example.com\r\n\r\n";
 
 	// This is where we create a socket object
 	// That creates the TCP conection
-	System.out.println("TCPClient connecting to " + host.toString() + ":" + port);
-	Socket clientSocket = new Socket(host, port);
+	System.out.println("TCPClient connecting to " + ip + ":" + port);
+	System.out.println("Sending request:\n" + request);	
+	
+	try (Socket socket = new Socket()) {
+            socket.connect(new InetSocketAddress(ip, port), 5000);
+            socket.setSoTimeout(5000);
 
-	// Like files, we use readers and writers for convenience
-	BufferedReader reader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-	Writer writer = new OutputStreamWriter(clientSocket.getOutputStream());
+            // Send request
+            OutputStream out = socket.getOutputStream();
+            out.write(request.getBytes(StandardCharsets.US_ASCII));
+            out.flush();
 
-	// Sending a message to the server at the other end of the socket
-	System.out.println("Sending a message to the server");
-	writer.write("Hello Server!\n");
-	writer.flush();
-	// To make better use of bandwidth, messages are not sent
-	// until the flush method is used
+            // Read and print full response
+            InputStream in = socket.getInputStream();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(in, StandardCharsets.ISO_8859_1));
 
-	// We can read what the server has said
-	String response = reader.readLine();
-	System.out.println("The server said : " + response);
-
-	// Close down the connection
-	clientSocket.close();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                System.out.println(line);
     }
 }
